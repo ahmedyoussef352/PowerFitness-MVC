@@ -1,0 +1,123 @@
+﻿@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    string Active(string name) =>
+    string.Equals(controller, name, StringComparison.OrdinalIgnoreCase)
+    ? "active" : "";
+}
+
+<header>
+    <!-- ^ navbar -->
+    <nav class="navbar navbar-expand-lg bg-white my-3">
+        <div class="container">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <img src="~/images/logo.jpg" alt="Power fitness" width="48" height="48" asp-append-version="true" />
+            </a>
+            <button class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+<ul class="navbar-nav m-auto mb-2 mb-lg-0 mt-3 mt-lg-0 align-items-center">
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Home") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Home") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Home">Home</a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Members") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Members") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Members">Members</a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Trainer") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Trainer") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Trainers">Trainers</a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Session") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Session") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Session">Session</a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Plans") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Plans") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Plans">Plans</a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Membership") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Membership") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Membership">Memberships</a>
+    </li>
+    
+    <li class="nav-item">
+        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 rounded-pill @(Active("Booking") == "active" ? "bg-primary text-white" : "text-black-alternative")"
+           aria-current="@(Active("Booking") == "active" ? "page" : null)"
+           asp-action="Index" asp-controller="Booking">Sessions Schedule</a>
+    </li>
+    
+    <li class="nav-item">
+        <form asp-action="Logout" asp-controller="Account" method="post">
+            <button type="submit" class="btn btn-link nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative">
+                Logout
+            </button>
+        </form>
+    </li>
+</ul>
+                @* <ul class="navbar-nav m-auto mb-2 mb-lg-0 mt-3 mt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @Active("Home")"
+                           aria-current="@(Active("Home") == "active" ? "page" : null)"
+                           asp-action="Index" asp-controller="Home">Home</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative"
+                           asp-action="Index" asp-controller="Member">Members</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative"
+                           asp-action="Index" asp-controller="Trainer">Trainers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative"
+                           asp-action="Index" asp-controller="Session">Session</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @Active("Plans")"
+                           aria-current="@(Active("Plans") == "active" ? "page" : null)"
+                           asp-action="Index" asp-controller="Plans">Plans</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative"
+                           asp-action="Index" asp-controller="Membership">Memberships</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative"
+                           asp-action="Index" asp-controller="Booking">Sessions Schedule</a>
+                    </li>
+                    <li class="nav-item">
+                        <form asp-action="Logout" asp-controller="Account" method="post">
+                            <button type="submit" class="btn btn-link nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul> *@
+            </div>
+        </div>
+    </nav>
+
+</header>
+

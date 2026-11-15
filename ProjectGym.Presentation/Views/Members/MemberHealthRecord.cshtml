@@ -1,0 +1,66 @@
+﻿@using ProjectGym.BusinessLogic.ViewModel.HeathRecord
+@model HealthRecordViewModel
+<div class="container">
+    <main role="main" class="pb-3">
+        <div class="container mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card gym-card overflow-hidden">
+                        <div class="gym-card-header">
+                            <h3 class="mb-0">Health Record</h3>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="gym-info-box h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="health-letter bg-primary-color me-3">H</div>
+                                            <h6 class="text-muted mb-0">Height</h6>
+                                        </div>
+                                        <h4 class="text-primary-color mb-0">@Model.Height.ToString("0.00") <small>cm</small></h4>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="gym-info-box h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="health-letter bg-primary-color me-3">W</div>
+                                            <h6 class="text-muted mb-0">Weight</h6>
+                                        </div>
+                                        <h4 class="text-primary-color mb-0">@Model.Weight.ToString("0.00") <small>kg</small></h4>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="gym-info-box h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="health-letter bg-danger me-3">B</div>
+                                            <h6 class="text-muted mb-0">Blood Type</h6>
+                                        </div>
+                                        <h4 class="text-danger mb-0">@Model.BloodType</h4>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="gym-info-box h-100">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <div class="health-letter bg-warning me-3">N</div>
+                                            <h6 class="text-muted mb-0">Note</h6>
+                                        </div>
+                                        <h4 class="text-primary-color mb-0">@(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)</h4>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <a asp-controller="Members" asp-action="Index" class="btn btn-fill w-100 py-2">
+                                    Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
