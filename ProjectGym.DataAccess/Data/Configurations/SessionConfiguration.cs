@@ -17,7 +17,10 @@ namespace ProjectGym.DataAccess.Data.Configurations
                     "Ck_Session_StartDate_Capacity",
                     "[Capacity] BETWEEN 1 AND 25 "
                     );
-                builder.HasCheckConstraint("Ck_Session_Start_End", "[EndTime] > [StartTime]");
+                t.HasCheckConstraint(
+                                "Ck_Session_Start_End",
+                                "[EndTime] > [StartTime]"
+                            );
             });
 
             builder.HasQueryFilter(s => !s.IsDeleted);

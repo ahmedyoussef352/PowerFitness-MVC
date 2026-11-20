@@ -8,36 +8,50 @@ public class PlansController(IPlanService plans) : Controller
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var items = await plans.GetAllAsync(cancellationToken);
-        return View(items.ToList());
-    }
-    public async Task<IActionResult> Details(int id)
-    {
+        var result = await plans.GetAllAsync(cancellationToken);
 
+        if (!result.IsSuccess)
+        {
+            TempData["Error"] = result.Error ?? "Cannot load plans.";
+            return View(new List<PlanViewModel>());
+        }
+
+        return View(result.Value);
+    }
+
+    // Plan Details View
+    public async Task<IActionResult> Details(int id, CancellationToken cancellationToken)
+    {
         if (id <= 0)
         {
             return NotFound();
         }
-        var plan = await plans.GetByIdAsync(id);
 
-        if (plan is null)
+        var result = await plans.GetByIdAsync(id, cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
         {
             return RedirectToAction(nameof(Index));
-
         }
-        return View(plan);
+
+        return View(result.Value);
     }
-    // Edit Member
+
+    // Get Edit Plan
     [HttpGet]
     public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
     {
-        var item = await plans.GetForUpdateAsync(id, cancellationToken);
-        if (item == null)
+        var result = await plans.GetForUpdateAsync(id, cancellationToken);
+
+        if (!result.IsSuccess || result.Value == null)
         {
             return NotFound();
         }
-        return View(item);
+
+        return View(result.Value);
     }
+
+    // Post Edit Plan
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit([FromRoute] int id, EditPlanViewModel model, CancellationToken cancellationToken)
@@ -46,17 +60,21 @@ public class PlansController(IPlanService plans) : Controller
         {
             return View(model);
         }
+
         var result = await plans.UpdateAsync(id, model, cancellationToken);
+
         if (!result.IsSuccess)
         {
-            ModelState.AddModelError(string.Empty, result.Message);
-            TempData["Error"] = "Cannot Update Member.";
+            ModelState.AddModelError(string.Empty, result.Error ?? "Cannot update plan.");
+            TempData["Error"] = "Cannot Update Plan.";
             return View(model);
         }
-        TempData["Success"] = "Member Updated Successfully.";
+
+        TempData["Success"] = "Plan Updated Successfully.";
         return RedirectToAction(nameof(Index));
     }
 
+    // Plan Change Status 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id, CancellationToken cancellationToken)
@@ -65,11 +83,11 @@ public class PlansController(IPlanService plans) : Controller
 
         if (!result.IsSuccess)
         {
-            TempData["Error"] = result.Message;
+            TempData["Error"] = result.Error ?? "Cannot change plan status.";
         }
         else
         {
-            TempData["Success"] = result.Message;
+            TempData["Success"] = "Plan status changed successfully!";
         }
 
         return RedirectToAction(nameof(Index));

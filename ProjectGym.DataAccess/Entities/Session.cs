@@ -4,8 +4,8 @@ public class Session : BaseEntity
 {
     public string Description { get; set; } = null!;
     public int Capacity { get; set; }
-    public DateOnly StartTime { get; set; }
-    public DateOnly EndTime { get; set; }
+    public DateTime StartTime { get; set; }
+    public DateTime EndTime { get; set; }
     // Trainer m-1
     public int TrainerId { get; set; }
     public Trainer Trainer { get; set; } = null!;

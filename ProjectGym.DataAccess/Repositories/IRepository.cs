@@ -6,7 +6,8 @@ namespace ProjectGym.DataAccess.Repositories;
 public interface IRepository<TEntity> where TEntity
     : BaseEntity
 {
-    Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default,
+        params Expression<Func<TEntity, object>>[]? includes);
 
     Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 

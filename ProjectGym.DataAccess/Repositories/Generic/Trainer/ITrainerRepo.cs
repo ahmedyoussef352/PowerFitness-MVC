@@ -1,6 +1,5 @@
 ﻿using ProjectGym.DataAccess.Entities;
-
-namespace ProjectGym.DataAccess.Repositories;
+using ProjectGym.DataAccess.Repositories;
 
 public interface ITrainerRepo : IRepository<Trainer>
 {

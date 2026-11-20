@@ -8,10 +8,13 @@ public class MemberShipConfiguration : IEntityTypeConfiguration<MemberShip>
 {
     public void Configure(EntityTypeBuilder<MemberShip> builder)
     {
-        builder.HasCheckConstraint(
-            "Ck_MemberShip_StartDate_EndDate",
-            "[EndDate] > [StartDate]"
+        builder.ToTable(t =>
+        {
+            t.HasCheckConstraint(
+                "Ck_MemberShip_StartDate_EndDate",
+                "[EndDate] > [StartDate]"
             );
+        });
 
         //builder.HasIndex(ms => new { ms.MemberId, ms.PlanId })
         //    .IsUnique();

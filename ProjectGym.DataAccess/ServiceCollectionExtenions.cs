@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using ProjectGym.DataAccess.Data.Contexts;
 using ProjectGym.DataAccess.Data.Interceptors;
+using ProjectGym.DataAccess.QueryService;
 using ProjectGym.DataAccess.Repositories;
 
 namespace ProjectGym.DataAccess;
@@ -21,7 +22,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPlanRepository, PlanRepository>();
         services.AddScoped<IMemberRepository, MemberRepository>();
         services.AddScoped<ITrainerRepo, TrainerRepo>();
+        services.AddScoped<ISessionQueryService, SessionQueryService>();
+
+
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
     }

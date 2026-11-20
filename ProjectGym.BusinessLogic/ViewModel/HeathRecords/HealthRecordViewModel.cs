@@ -15,7 +15,7 @@ public class HealthRecordViewModel
 
     [Required(ErrorMessage = "Blood Type is required")]
     [EnumDataType(typeof(BloodType), ErrorMessage = "Invalid Blood Type")]
-    public BloodType? BloodType { get; set; } = null!;
+    public string? BloodType { get; set; } = null!;
 
     public string? Notes { get; set; }
 }

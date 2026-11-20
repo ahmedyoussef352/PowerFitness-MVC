@@ -1,15 +1,15 @@
-﻿using ProjectGym.BusinessLogic.Comman;
+﻿using Gymy.BusinessLogic.Common;
 using ProjectGym.BusinessLogic.ViewModel.Plans;
 
 namespace ProjectGym.BusinessLogic.Servies
 {
     public class PlanService(IPlanRepository planRepository) : IPlanService
     {
-        public async Task<IEnumerable<PlanViewModel>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<Result<IReadOnlyList<PlanViewModel>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
             var plans = await planRepository.GetAllAsync(cancellationToken);
 
-            return plans.Select(p => new PlanViewModel
+            var planList = plans.Select(p => new PlanViewModel
             {
                 Id = p.Id,
                 Name = p.Name,
@@ -17,59 +17,63 @@ namespace ProjectGym.BusinessLogic.Servies
                 Description = p.Description,
                 DurationDays = p.DurationDays,
                 IsActive = p.IsActive
-            });
+            }).ToList();
+
+            return Result<IReadOnlyList<PlanViewModel>>.Success(planList);
         }
 
-        public Task<PlanViewModel> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-        {
-            var plan = planRepository.GetByIdAsync(id, cancellationToken);
-
-            return plan.ContinueWith(t =>
-            {
-                var p = t.Result;
-                if (p is null)
-                {
-                    return null!;
-                }
-                return new PlanViewModel
-                {
-                    Id = p.Id,
-                    Name = p.Name,
-                    Price = p.Price,
-                    Description = p.Description,
-                    DurationDays = p.DurationDays,
-                    IsActive = p.IsActive
-                };
-            }, cancellationToken);
-        }
-        // Get Data To Edit
-        public async Task<EditPlanViewModel?> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+        public async Task<Result<PlanViewModel>> GetByIdAsync(int id, CancellationToken cancellationToken = default)
         {
             var plan = await planRepository.GetByIdAsync(id, cancellationToken);
 
             if (plan is null)
             {
-                return null;
+                return Result<PlanViewModel>.Failure("Plan not found.");
             }
 
-            return new EditPlanViewModel
+            var viewModel = new PlanViewModel
+            {
+                Id = plan.Id,
+                Name = plan.Name,
+                Price = plan.Price,
+                Description = plan.Description,
+                DurationDays = plan.DurationDays,
+                IsActive = plan.IsActive
+            };
+
+            return Result<PlanViewModel>.Success(viewModel);
+        }
+
+        // Get Data To Edit
+        public async Task<Result<EditPlanViewModel>> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+        {
+            var plan = await planRepository.GetByIdAsync(id, cancellationToken);
+
+            if (plan is null)
+            {
+                return Result<EditPlanViewModel>.Failure("Plan not found.");
+            }
+
+            var viewModel = new EditPlanViewModel
             {
                 PlanName = plan.Name,
                 Description = plan.Description,
                 DurationDays = plan.DurationDays,
                 Price = plan.Price
-
-
             };
+
+            return Result<EditPlanViewModel>.Success(viewModel);
         }
+
         // Post Update
         public async Task<Result> UpdateAsync(int id, EditPlanViewModel model, CancellationToken cancellationToken)
         {
             var plan = await planRepository.GetByIdAsync(id, cancellationToken);
             if (plan is null)
             {
-                return Result.Failure("plan not found.");
+                return Result.Failure("Plan not found.");
             }
+
             if (plan.Name != model.PlanName)
                 return Result.Failure("Name cannot be changed");
 
@@ -78,7 +82,7 @@ namespace ProjectGym.BusinessLogic.Servies
             plan.Price = model.Price;
 
             await planRepository.SaveChangesAsync(cancellationToken);
-            return Result.Success("Plan updated Successfully!");
+            return Result.Success();
         }
 
         public async Task<Result> ChangeStatusStatusAsync(int id, CancellationToken cancellationToken)
@@ -93,8 +97,7 @@ namespace ProjectGym.BusinessLogic.Servies
 
             await planRepository.SaveChangesAsync(cancellationToken);
 
-            string statusMessage = plan.IsActive ? "Activate" : "Deactivate";
-            return Result.Success($"Plan {statusMessage} successfully!");
+            return Result.Success();
         }
     }
 }

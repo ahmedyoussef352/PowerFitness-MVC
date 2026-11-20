@@ -9,9 +9,13 @@ public class Repository<TEntity>(GymDbContext dbContext) : IRepository<TEntity> 
 {
     private readonly GymDbContext _dbContext = dbContext;
     private readonly DbSet<TEntity> _dbSet = dbContext.Set<TEntity>();
-    public async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
-    => await _dbSet.AsNoTracking().ToListAsync();
-
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(
+        CancellationToken cancellationToken = default,
+        params Expression<Func<TEntity, object>>[]? includes)
+    {
+        var query = ApplyIncludes(_dbSet.AsNoTracking(), includes);
+        return await query.ToListAsync(cancellationToken);
+    }
     public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     => await _dbSet.FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
 
@@ -38,13 +42,19 @@ public class Repository<TEntity>(GymDbContext dbContext) : IRepository<TEntity> 
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     => await _dbContext.SaveChangesAsync(cancellationToken);
-    private static IQueryable<TEntity> ApplyIncludes(IQueryable<TEntity> query,
-    params Expression<Func<TEntity, object>>[] includes)
+    private static IQueryable<TEntity> ApplyIncludes(
+    IQueryable<TEntity> query,
+    params Expression<Func<TEntity, object>>[]? includes)
     {
+        if (includes is null || includes.Length == 0)
+            return query;
+
         foreach (var include in includes)
         {
-            query = query.Include(include);
+            if (include is not null)
+                query = query.Include(include);
         }
+
         return query;
     }
 

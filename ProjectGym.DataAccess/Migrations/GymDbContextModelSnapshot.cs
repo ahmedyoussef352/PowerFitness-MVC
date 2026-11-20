@@ -264,14 +264,14 @@ namespace ProjectGym.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<DateOnly>("EndTime")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<DateOnly>("StartTime")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TrainerId")
                         .HasColumnType("int");

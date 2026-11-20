@@ -1,4 +1,5 @@
-﻿using ProjectGym.BusinessLogic.Comman;
+﻿using Gymy.BusinessLogic.Common;
+using ProjectGym.BusinessLogic.Comman;
 using ProjectGym.BusinessLogic.ViewModel.Members;
 using ProjectGym.BusinessLogic.ViewModel.Trainers;
 using ProjectGym.DataAccess.Entities;
@@ -7,33 +8,36 @@ using ProjectGym.DataAccess.Repositories;
 
 namespace ProjectGym.BusinessLogic.Servies;
 
-public class TrainerService(ITrainerRepo trainerRepo) : ITrainerService
+public class TrainerService(IUnitOfWork unitOfWork, IDateTimeProvider clock) : ITrainerService
 {
-    public async Task<IEnumerable<TrainerIndexViewModel>> GetAllAsync(CancellationToken cancellationToken)
+    public async Task<Result<IReadOnlyList<TrainerIndexViewModel>>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var trainers = await trainerRepo.GetAllAsync(cancellationToken);
+        var trainers = await unitOfWork.Trainers.GetAllAsync(cancellationToken);
 
-        return trainers.Select(t => new TrainerIndexViewModel
+        var trainerList = trainers.Select(t => new TrainerIndexViewModel
         {
             Id = t.Id,
             Name = t.Name,
             Email = t.Email,
             Phone = t.Phone,
             Specialties = t.Speciality.ToString()
-        });
+        }).ToList();
+
+        return Result<IReadOnlyList<TrainerIndexViewModel>>.Success(trainerList);
     }
+
     public async Task<Result> CreateAsync(CreateTrainerViewModel model, CancellationToken cancellationToken = default)
     {
         var email = model.Email.Trim().ToLower();
         var name = model.Name.Trim().ToLower();
         var phone = model.Phone.Trim();
 
-        if (await trainerRepo.IsEmailTakenAsync(email: email, cancellationToken: cancellationToken))
+        if (await unitOfWork.Trainers.IsEmailTakenAsync(email: email, cancellationToken: cancellationToken))
         {
             return Result.Failure("A Trainer with this email already exists.");
         }
 
-        if (await trainerRepo.IsPhoneTakenAsync(phone: phone, cancellationToken: cancellationToken))
+        if (await unitOfWork.Trainers.IsPhoneTakenAsync(phone: phone, cancellationToken: cancellationToken))
         {
             return Result.Failure("A Trainer with this phone number already exists.");
         }
@@ -51,36 +55,34 @@ public class TrainerService(ITrainerRepo trainerRepo) : ITrainerService
             Gender = model.Gender.Value,
             Speciality = model.Specialties!.Value,
             DateOfBirth = model.DateOfBirth,
-            HireDate = DateOnly.FromDateTime(DateTime.Now),
-
+            HireDate = DateOnly.FromDateTime(clock.UtcNow),
             Address = new Address
             {
                 BuildingNumber = model.BuildingNumber,
                 City = model.City,
                 Street = model.Street
             },
-
         };
-        await trainerRepo.AddAsync(trainer, cancellationToken);
-        await trainerRepo.SaveChangesAsync(cancellationToken);
 
-        return Result.Success("Trainer added successfully!");
+        await unitOfWork.Trainers.AddAsync(trainer, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return Result.Success();
     }
 
-    public async Task<TrainerDetailsViewModel?> GetDetailsById(int id, CancellationToken cancellationToken = default)
+    public async Task<Result<TrainerDetailsViewModel>> GetDetailsByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var trainer = await trainerRepo.GetByIdAsync(
+        var trainer = await unitOfWork.Trainers.GetByIdAsync(
             id: id,
             cancellationToken: cancellationToken
-            );
+        );
 
         if (trainer is null)
         {
-            return null;
+            return Result<TrainerDetailsViewModel>.Failure("Trainer not found.");
         }
-        var today = DateOnly.FromDateTime(DateTime.Now);
 
-        return new TrainerDetailsViewModel
+        var viewModel = new TrainerDetailsViewModel
         {
             Id = trainer.Id,
             Name = trainer.Name,
@@ -89,21 +91,22 @@ public class TrainerService(ITrainerRepo trainerRepo) : ITrainerService
             DateOfBirth = trainer.DateOfBirth.ToShortDateString(),
             Address = $"{trainer.Address.BuildingNumber} - {trainer.Address.Street} - {trainer.Address.City}",
             Specialties = trainer.Speciality.ToString(),
-
-
         };
+
+        return Result<TrainerDetailsViewModel>.Success(viewModel);
     }
+
     // Get Data To Edit
-    public async Task<EditTrainerViewModel?> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+    public async Task<Result<EditTrainerViewModel>> GetForUpdateAsync(int id, CancellationToken cancellationToken)
     {
-        var trainer = await trainerRepo.GetByIdAsync(id, cancellationToken);
+        var trainer = await unitOfWork.Trainers.GetByIdAsync(id, cancellationToken);
 
         if (trainer is null)
         {
-            return null;
+            return Result<EditTrainerViewModel>.Failure("Trainer not found.");
         }
 
-        return new EditTrainerViewModel
+        var viewModel = new EditTrainerViewModel
         {
             Name = trainer.Name,
             Email = trainer.Email,
@@ -112,70 +115,66 @@ public class TrainerService(ITrainerRepo trainerRepo) : ITrainerService
             Street = trainer.Address.Street,
             City = trainer.Address.City,
             Specialties = trainer.Speciality,
-
-
-
         };
+
+        return Result<EditTrainerViewModel>.Success(viewModel);
     }
+
     // Post Update
     public async Task<Result> UpdateAsync(int id, EditTrainerViewModel model, CancellationToken cancellationToken)
     {
-        var trainer = await trainerRepo.GetByIdAsync(id, cancellationToken);
+        var trainer = await unitOfWork.Trainers.GetByIdAsync(id, cancellationToken);
         if (trainer is null)
         {
             return Result.Failure("Trainer not found.");
         }
+
         if (trainer.Name != model.Name)
             return Result.Failure("Name cannot be changed");
 
         var email = model.Email.Trim().ToLowerInvariant();
         var phone = model.Phone;
-        if (await trainerRepo.IsEmailTakenAsync(email, excludeId: id))
+
+        if (await unitOfWork.Trainers.IsEmailTakenAsync(email, excludeId: id))
         {
             return Result.Failure("A Trainer with this email already exists.");
         }
-        if (await trainerRepo.IsPhoneTakenAsync(phone, excludeId: id))
+        if (await unitOfWork.Trainers.IsPhoneTakenAsync(phone, excludeId: id))
         {
             return Result.Failure("A Trainer with this phone number already exists.");
         }
+
         trainer.Email = email;
         trainer.Phone = phone;
-
         trainer.Speciality = model.Specialties!.Value;
+
         trainer.Address = new Address
         {
             BuildingNumber = model.BuildingNumber,
             City = model.City.Trim(),
             Street = model.Street.Trim()
-
         };
 
-        await trainerRepo.SaveChangesAsync(cancellationToken);
-        return Result.Success("Member updated Successfully!");
+        await unitOfWork.CommitAsync(cancellationToken);
+        return Result.Success();
     }
 
-    //// Delete Member 
-    public async Task<Result> DeleteAsync(int id,
-        CancellationToken cancellationToken)
+    // Delete Trainer 
+    public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        var trainer = await trainerRepo.GetDetailsByIdAsync(id,
+        var trainer = await unitOfWork.Trainers.GetDetailsByIdAsync(id,
             includes: m => m.Sessions,
-           cancellationToken: cancellationToken);
-
+            cancellationToken: cancellationToken);
 
         if (trainer is null)
             return Result.Failure("Trainer not found");
 
-        if (await trainerRepo.
-        HasUpCommingSessionAsync(id, cancellationToken: cancellationToken)
-        )
-            return Result.Failure("Trainer Not Found");
+        if (await unitOfWork.Trainers.HasUpCommingSessionAsync(id, cancellationToken: cancellationToken))
+            return Result.Failure("Trainer has upcoming sessions and cannot be deleted");
 
-        await trainerRepo.SoftDeleteAsync(trainer, cancellationToken);
-        await trainerRepo.SaveChangesAsync(cancellationToken);
-        return Result.Success("Trainer Deleted Successfully!");
+        await unitOfWork.Trainers.SoftDeleteAsync(trainer, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
 
+        return Result.Success();
     }
-
-
 }
